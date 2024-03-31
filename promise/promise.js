@@ -121,6 +121,82 @@ export class MyPromise {
       }
     );
   }
+
+  static resolve(result) {
+    return new MyPromise(resolve => resolve(result));
+  }
+
+  static reject(result) {
+    return new MyPromise((_, reject) => reject(result));
+  }
+
+  static any(promises) {
+    return new MyPromise((resolve, reject) => {
+      let counter = promises.length;
+
+      for (const promise of promises) {
+        promise
+          .then(resolve)
+          .finally(() => {
+            counter--;
+
+            if (counter === 0) {
+              reject(new Error('AccumulatedError'));
+            }
+          });
+      }
+    });
+  }
+
+  static all(promises) {
+    return new MyPromise((resolve, reject) => {
+      let counter = promises.length;
+      const results = [];
+      for (let i = 0; i < promises.length; i++) {
+        const promise = promises[i];
+        promise
+          .then(res => {
+            results[i] = res;
+          })
+          .catch(reject)
+          .finally(() => {
+            counter--;
+
+            if (counter === 0) resolve(results);
+          });
+      }
+    });
+  }
+
+  static race(promises) {
+    return new MyPromise((resolve, reject) => {
+      for (const promise of promises) {
+        promise.then(resolve).catch(reject);
+      }
+    });
+  }
+
+  static allSettled(promises) {
+    return new MyPromise((resolve) => {
+      const results = [];
+      let counter = promises.length;
+      for (let i = 0; i < promises.length; i++) {
+        promises[i]
+          .then(res => {
+            results[i] = { status: 'fulfilled', value: res }
+          })
+          .catch(error => {
+            results[i] = { status: 'rejected', reason: error };
+          })
+          .finally(() => {
+            counter--;
+            if (counter === 0) {
+              resolve(results);
+            }
+          });
+      }
+    });
+  }
 }
 
 class UncaughtPromiseError extends Error {
