@@ -1,4 +1,4 @@
-export default function flatten(value) {
+function flat(value) {
   const result = value;
   while (result.some(item => Array.isArray(item))) {
     result = [].concat(...result);
@@ -8,7 +8,7 @@ export default function flatten(value) {
 }
 
 // In-Place Solution
-export default function flatten(value) {
+function flat(value) {
   let i = 0;
   while (i < value.length) {
     if (Array.isArray(value[i])) {
